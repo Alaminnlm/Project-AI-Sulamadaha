@@ -45,7 +45,7 @@ login_manager.login_message = 'Silakan login terlebih dahulu'
 api_key = os.getenv("GOOGLE_API_KEY")
 if api_key:
     genai.configure(api_key=api_key)  # type: ignore
-    model = genai.GenerativeModel("gemini-2.5-flash")  # type: ignore
+    model = genai.GenerativeModel("gemini-1.5-flash")  # type: ignore
 
 @login_manager.user_loader
 def load_user(user_id):
