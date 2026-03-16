@@ -1,0 +1,192 @@
+{% extends 'base.html' %}
+
+{% block title %}Admin Dashboard - Sulamadaha AI{% endblock %}
+
+{% block content %}
+
+{% macro admin_sidebar(active) %}
+<nav class="admin-sidebar">
+    <div class="sidebar-brand">
+        <i class="fas fa-shield-halved"></i>
+        <span>Admin Panel</span>
+    </div>
+    <ul class="sidebar-menu">
+        <li><a href="{{ url_for('admin.dashboard') }}" class="{{ 'active' if active == 'dashboard' }}"><i class="fas fa-gauge"></i> Dashboard</a></li>
+        <li><a href="{{ url_for('admin.users') }}" class="{{ 'active' if active == 'users' }}"><i class="fas fa-users"></i> Users</a></li>
+        <li><a href="{{ url_for('admin.manage_admins') }}" class="{{ 'active' if active == 'admins' }}"><i class="fas fa-user-shield"></i> Administrators</a></li>
+        <li><a href="{{ url_for('admin.activity') }}" class="{{ 'active' if active == 'activity' }}"><i class="fas fa-wave-square"></i> Activity</a></li>
+        <li><a href="{{ url_for('admin.reports') }}" class="{{ 'active' if active == 'reports' }}"><i class="fas fa-chart-bar"></i> Reports</a></li>
+        <li><a href="{{ url_for('admin.settings') }}" class="{{ 'active' if active == 'settings' }}"><i class="fas fa-gear"></i> Settings</a></li>
+        <li class="sidebar-spacer"></li>
+        <li><a href="{{ url_for('admin.logout') }}" class="logout-link"><i class="fas fa-right-from-bracket"></i> Logout</a></li>
+    </ul>
+</nav>
+{% endmacro %}
+
+<div class="admin-wrapper">
+    {{ admin_sidebar('dashboard') }}
+
+    <div class="admin-main">
+        <div class="page-header">
+            <div>
+                <h1 class="page-title">Dashboard</h1>
+                <p class="page-sub">Selamat datang kembali, {{ current_user.full_name or current_user.username }}!</p>
+            </div>
+        </div>
+
+        {% with messages = get_flashed_messages(with_categories=true) %}
+            {% if messages %}
+                {% for category, message in messages %}
+                    <div class="alert alert-{{ category }}">
+                        <i class="fas {% if category == 'success' %}fa-circle-check{% else %}fa-circle-exclamation{% endif %}"></i>
+                        {{ message }}
+                    </div>
+                {% endfor %}
+            {% endif %}
+        {% endwith %}
+
+        <!-- Stat Cards -->
+        <div class="stats-grid">
+            <div class="stat-card">
+                <div class="stat-icon" style="background: rgba(56,189,248,0.15); color: #38bdf8;">
+                    <i class="fas fa-users"></i>
+                </div>
+                <div>
+                    <p class="stat-label">Total Users</p>
+                    <p class="stat-number">{{ stats.total_users }}</p>
+                </div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-icon" style="background: rgba(16,185,129,0.15); color: #10b981;">
+                    <i class="fas fa-bolt"></i>
+                </div>
+                <div>
+                    <p class="stat-label">Online (30 min)</p>
+                    <p class="stat-number">{{ stats.active_users }}</p>
+                </div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-icon" style="background: rgba(250,204,21,0.15); color: #facc15;">
+                    <i class="fas fa-arrow-right-to-bracket"></i>
+                </div>
+                <div>
+                    <p class="stat-label">Logins (7 days)</p>
+                    <p class="stat-number">{{ stats.recent_logins }}</p>
+                </div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-icon" style="background: rgba(167,139,250,0.15); color: #a78bfa;">
+                    <i class="fas fa-comments"></i>
+                </div>
+                <div>
+                    <p class="stat-label">Total Messages</p>
+                    <p class="stat-number">{{ stats.total_messages }}</p>
+                </div>
+            </div>
+        </div>
+
+        <!-- Traffic Chart -->
+        <div class="glass-card">
+            <h2 class="section-title"><i class="fas fa-chart-line"></i> Traffic (Last 7 Days)</h2>
+            <canvas id="trafficChart" height="80"></canvas>
+        </div>
+
+        <!-- Recent Activities -->
+        <div class="glass-card">
+            <h2 class="section-title"><i class="fas fa-wave-square"></i> Recent Activities</h2>
+            <div class="table-wrapper">
+                <table class="dark-table">
+                    <thead>
+                        <tr>
+                            <th>User</th>
+                            <th>Action</th>
+                            <th>IP Address</th>
+                            <th>Timestamp</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for activity in recent_activities %}
+                        <tr>
+                            <td>
+                                <a href="{{ url_for('admin.user_details', user_id=activity.user_id) }}" class="table-link">
+                                    User #{{ activity.user_id }}
+                                </a>
+                            </td>
+                            <td><span class="badge-action">{{ activity.action }}</span></td>
+                            <td class="mono">{{ activity.ip_address }}</td>
+                            <td class="ts">{{ activity.timestamp.strftime('%Y-%m-%d %H:%M:%S') }}</td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+</div>
+
+{% include 'admin/_shared_style.html' ignore missing %}
+<style>
+.stats-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(210px, 1fr));
+    gap: 16px;
+    margin-bottom: 20px;
+}
+.stat-card {
+    background: var(--glass-bg);
+    border: 1px solid var(--glass-border);
+    border-radius: 16px;
+    padding: 20px;
+    display: flex;
+    align-items: center;
+    gap: 16px;
+    box-shadow: 0 4px 16px rgba(0,0,0,0.2);
+}
+.stat-icon {
+    width: 52px; height: 52px; border-radius: 12px;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 1.2rem; flex-shrink: 0;
+}
+.stat-label { font-size: 0.75rem; color: var(--text-muted); font-weight: 600; text-transform: uppercase; letter-spacing: 0.05em; margin-bottom: 4px; }
+.stat-number { font-size: 1.8rem; font-weight: 800; color: var(--text-main); }
+
+.btn-accent {
+    display: inline-flex; align-items: center; gap: 8px;
+    background: linear-gradient(135deg, var(--accent), #0ea5e9);
+    color: var(--bg-base); text-decoration: none; padding: 10px 20px;
+    border-radius: 10px; font-size: 0.88rem; font-weight: 700;
+    transition: all 0.2s; box-shadow: 0 0 16px var(--accent-glow); white-space: nowrap;
+}
+.btn-accent:hover { transform: translateY(-2px); box-shadow: 0 0 24px var(--accent-glow); }
+</style>
+
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<script>
+// Traffic chart placeholder
+const ctx = document.getElementById('trafficChart').getContext('2d');
+new Chart(ctx, {
+    type: 'line',
+    data: {
+        labels: ['Day 1','Day 2','Day 3','Day 4','Day 5','Day 6','Day 7'],
+        datasets: [{
+            label: 'Requests',
+            data: [12, 19, 8, 25, 17, 22, 30],
+            borderColor: '#38bdf8',
+            backgroundColor: 'rgba(56,189,248,0.1)',
+            fill: true,
+            tension: 0.4,
+            pointBackgroundColor: '#38bdf8',
+            pointRadius: 4,
+        }]
+    },
+    options: {
+        responsive: true,
+        plugins: { legend: { labels: { color: '#94a3b8' } } },
+        scales: {
+            x: { ticks: { color: '#94a3b8' }, grid: { color: 'rgba(255,255,255,0.05)' } },
+            y: { ticks: { color: '#94a3b8' }, grid: { color: 'rgba(255,255,255,0.05)' } }
+        }
+    }
+});
+</script>
+{% endblock %}

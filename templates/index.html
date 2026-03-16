@@ -1,0 +1,151 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Chatbot Asisten Wisata Pantai Sulamadaha</title>
+    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+</head>
+
+<body>
+    <nav class="app-navbar">
+        <a href="{{ url_for('index') }}" class="logo" style="text-decoration: none;">
+            <i class="fa-solid fa-umbrella-beach" style="color: var(--accent-color);"></i>
+            Sulamadaha AI
+        </a>
+        
+        <div class="nav-links">
+            <button class="btn btn-ghost" onclick="document.getElementById('historySidebar').classList.toggle('collapsed')">
+                <i class="fas fa-bars"></i> Menu
+            </button>
+            <button class="btn btn-primary" onclick="startNewChat()">
+                <i class="fas fa-plus"></i> Chat Baru
+            </button>
+            
+            <div class="user-profile-dropdown">
+                <button class="user-profile-btn" id="userProfileBtn">
+                    <i class="fas fa-user-circle"></i>
+                </button>
+                <div class="user-menu" id="userMenu">
+                    <div class="user-menu-header">{{ current_user.full_name or current_user.username }}</div>
+                    <a href="{{ url_for('auth.profile') }}" class="user-menu-item">
+                        <i class="fas fa-user"></i> Profile
+                    </a>
+                    <a href="{{ url_for('auth.logout') }}" class="user-menu-item logout">
+                        <i class="fas fa-sign-out-alt"></i> Logout
+                    </a>
+                </div>
+            </div>
+        </div>
+    </nav>
+
+    <div class="app-layout">
+        <!-- Persistent Left History Sidebar -->
+        <aside class="history-sidebar" id="historySidebar">
+            <div class="history-sidebar-header">
+                <h4><i class="fas fa-history"></i> Riwayat Chat</h4>
+            </div>
+            
+            <div class="history-list" id="historyList">
+                <!-- Chat history akan dimuat di sini -->
+            </div>
+            
+            <button class="clear-btn" onclick="clearHistory()">
+                <i class="fas fa-trash"></i> Hapus Riwayat
+            </button>
+        </aside>
+
+        <!-- Main Content -->
+        <main class="app-main">
+            <div class="chat-container">
+                <!-- Header -->
+                <div class="chat-header">
+                    <div class="ai-identity">
+                        <div class="ai-avatar">
+                            <i class="fas fa-robot"></i>
+                        </div>
+                        <div class="ai-info">
+                            <h3>Sulamadaha AI</h3>
+                            <p>Online & Ready</p>
+                        </div>
+                    </div>
+                    <div class="login-prompt">
+                        <i class="fas fa-shield-alt"></i>
+                        <span>Sesi aman. Riwayat obrolan Anda tersimpan.</span>
+                    </div>
+                </div>
+
+                <!-- Messages Area -->
+                <div class="messages-container" id="messagesContainer">
+                    <div class="message assistant">
+                        <div class="message-icon">
+                            <i class="fas fa-robot"></i>
+                        </div>
+                        <div class="message-content">
+                            Halo <strong>{{ current_user.full_name or current_user.username }}</strong>! 👋 Saya adalah AI asisten wisata Pantai Sulamadaha.
+                            <br><br>
+                            Apa yang ingin Anda rencanakan hari ini?
+                            
+                            <div class="suggestion-chips">
+                                <button class="chip" onclick="sendMessage('Apa daya tarik utama Pantai Sulamadaha?')">
+                                    <i class="fas fa-star"></i> Daya Tarik Utama
+                                </button>
+                                <button class="chip" onclick="sendMessage('Bagaimana cara menuju ke sana dari pusat kota?')">
+                                    <i class="fas fa-map-marked-alt"></i> Rute & Lokasi
+                                </button>
+                                <button class="chip" onclick="sendMessage('Apa aktivitas menarik yang bisa dilakukan di sana?')">
+                                    <i class="fas fa-swimmer"></i> Aktivitas Menarik
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Loading indicator -->
+                <div class="typing-indicator" id="loadingIndicator" style="display: none;">
+                    <div class="dot"></div>
+                    <div class="dot"></div>
+                    <div class="dot"></div>
+                </div>
+
+                <!-- Input Area -->
+                <div class="chat-input-container">
+                    <div class="input-wrapper">
+                        <input 
+                            type="text" 
+                            id="messageInput" 
+                            class="chat-input" 
+                            placeholder="Ketikkan pertanyaan Anda..."
+                            onkeypress="handleKeyPress(event)"
+                            autocomplete="off"
+                        >
+                        <button class="send-btn" onclick="sendMessage()" title="Kirim pesan">
+                            <i class="fas fa-paper-plane"></i>
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </main>
+    </div>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            const btn = document.getElementById('userProfileBtn');
+            const menu = document.getElementById('userMenu');
+            
+            if (btn && menu) {
+                btn.addEventListener('click', function(e) {
+                    e.stopPropagation();
+                    menu.classList.toggle('active');
+                });
+                document.addEventListener('click', function() {
+                    menu.classList.remove('active');
+                });
+            }
+        });
+    </script>
+    <script src="{{ url_for('static', filename='js/script.js') }}"></script>
+</body>
+</html>

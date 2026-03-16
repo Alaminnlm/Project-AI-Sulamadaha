@@ -1,0 +1,92 @@
+{% extends 'base.html' %}
+
+{% block title %}Create New Admin - Sulamadaha AI{% endblock %}
+
+{% block content %}
+<div class="admin-wrapper">
+    <nav class="admin-sidebar">
+        <div class="sidebar-brand"><i class="fas fa-shield-halved"></i><span>Admin Panel</span></div>
+        <ul class="sidebar-menu">
+            <li><a href="{{ url_for('admin.dashboard') }}" class="active"><i class="fas fa-gauge"></i> Dashboard</a></li>
+            <li><a href="{{ url_for('admin.users') }}"><i class="fas fa-users"></i> Users</a></li>
+            <li><a href="{{ url_for('admin.manage_admins') }}"><i class="fas fa-user-shield"></i> Administrators</a></li>
+            <li><a href="{{ url_for('admin.activity') }}"><i class="fas fa-wave-square"></i> Activity</a></li>
+            <li><a href="{{ url_for('admin.reports') }}"><i class="fas fa-chart-bar"></i> Reports</a></li>
+            <li><a href="{{ url_for('admin.settings') }}"><i class="fas fa-gear"></i> Settings</a></li>
+            <li class="sidebar-spacer"></li>
+            <li><a href="{{ url_for('admin.logout') }}" class="logout-link"><i class="fas fa-right-from-bracket"></i> Logout</a></li>
+        </ul>
+    </nav>
+
+    <div class="admin-main">
+        <div class="page-header">
+            <div>
+                <h1 class="page-title">Create New Admin</h1>
+                <p class="page-sub">Tambahkan admin baru ke sistem</p>
+            </div>
+            <a href="{{ url_for('admin.dashboard') }}" class="btn-back">
+                <i class="fas fa-arrow-left"></i> Kembali
+            </a>
+        </div>
+
+        {% with messages = get_flashed_messages(with_categories=true) %}
+            {% if messages %}
+                {% for category, message in messages %}
+                    <div class="alert alert-{{ category }}">
+                        <i class="fas {% if category == 'success' %}fa-circle-check{% else %}fa-circle-exclamation{% endif %}"></i>
+                        {{ message }}
+                    </div>
+                {% endfor %}
+            {% endif %}
+        {% endwith %}
+
+        <div class="glass-card" style="max-width: 600px;">
+            <h2 class="section-title"><i class="fas fa-user-plus"></i> Detail Akun Admin</h2>
+            <form method="POST" action="{{ url_for('admin.create_admin') }}" class="form-section">
+                <div class="form-group">
+                    <label>Username <span class="required">*</span></label>
+                    <input type="text" name="username" required placeholder="Masukkan username unik">
+                </div>
+                <div class="form-group">
+                    <label>Email <span class="required">*</span></label>
+                    <input type="email" name="email" required placeholder="Masukkan alamat email">
+                </div>
+                <div class="form-group">
+                    <label>Nama Lengkap</label>
+                    <input type="text" name="full_name" placeholder="Nama lengkap admin baru">
+                </div>
+                <div class="form-group">
+                    <label>Role</label>
+                    <select name="role">
+                        <option value="admin">Administrator</option>
+                        <option value="super_admin">Super Admin</option>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label>Password <span class="required">*</span></label>
+                    <input type="password" name="password" required minlength="6" placeholder="Minimal 6 karakter">
+                </div>
+                <div class="form-group">
+                    <label>Konfirmasi Password <span class="required">*</span></label>
+                    <input type="password" name="confirm_password" required minlength="6" placeholder="Ulangi password">
+                </div>
+
+                <div class="form-actions">
+                    <button type="submit" class="btn-save"><i class="fas fa-user-plus"></i> Simpan Admin Baru</button>
+                    <a href="{{ url_for('admin.dashboard') }}" class="btn-cancel">Batal</a>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+{% include 'admin/_shared_style.html' ignore missing %}
+<style>
+.required { color: #f87171; }
+.form-actions { display: flex; gap: 12px; align-items: center; padding-top: 16px; border-top: 1px solid var(--glass-border); }
+.btn-back { display: inline-flex; align-items: center; gap: 8px; color: var(--text-muted); text-decoration: none; font-size: 0.88rem; font-weight: 600; transition: color 0.2s; }
+.btn-back:hover { color: var(--accent); }
+.btn-cancel { color: var(--text-muted); text-decoration: none; font-size: 0.88rem; font-weight: 600; transition: color 0.2s; }
+.btn-cancel:hover { color: #f87171; }
+</style>
+{% endblock %}

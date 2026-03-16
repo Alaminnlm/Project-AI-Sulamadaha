@@ -1,0 +1,91 @@
+{% extends 'base.html' %}
+
+{% block title %}User Activity - Admin Panel{% endblock %}
+
+{% block content %}
+<div class="admin-wrapper">
+    <nav class="admin-sidebar">
+        <div class="sidebar-brand"><i class="fas fa-shield-halved"></i><span>Admin Panel</span></div>
+        <ul class="sidebar-menu">
+            <li><a href="{{ url_for('admin.dashboard') }}"><i class="fas fa-gauge"></i> Dashboard</a></li>
+            <li><a href="{{ url_for('admin.users') }}"><i class="fas fa-users"></i> Users</a></li>
+            <li><a href="{{ url_for('admin.manage_admins') }}"><i class="fas fa-user-shield"></i> Administrators</a></li>
+            <li><a href="{{ url_for('admin.activity') }}" class="active"><i class="fas fa-wave-square"></i> Activity</a></li>
+            <li><a href="{{ url_for('admin.reports') }}"><i class="fas fa-chart-bar"></i> Reports</a></li>
+            <li><a href="{{ url_for('admin.settings') }}"><i class="fas fa-gear"></i> Settings</a></li>
+            <li class="sidebar-spacer"></li>
+            <li><a href="{{ url_for('admin.logout') }}" class="logout-link"><i class="fas fa-right-from-bracket"></i> Logout</a></li>
+        </ul>
+    </nav>
+
+    <div class="admin-main">
+        <div class="page-header">
+            <div>
+                <h1 class="page-title">Activity Log</h1>
+                <p class="page-sub">Monitor semua aktivitas pengguna</p>
+            </div>
+        </div>
+
+        <div class="glass-card">
+            <form method="GET" class="filter-form" style="margin-bottom: 16px; display: flex; gap: 10px;">
+                <select name="action" onchange="this.form.submit()" style="max-width: 220px;">
+                    <option value="">All Actions</option>
+                    {% for action in actions %}
+                    <option value="{{ action }}" {% if action == selected_action %}selected{% endif %}>{{ action }}</option>
+                    {% endfor %}
+                </select>
+            </form>
+
+            <div class="table-wrapper">
+                <table class="dark-table">
+                    <thead>
+                        <tr>
+                            <th>User</th>
+                            <th>Action</th>
+                            <th>IP Address</th>
+                            <th>Endpoint</th>
+                            <th>Method</th>
+                            <th>Status</th>
+                            <th>Timestamp</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for activity in activities.items %}
+                        <tr>
+                            <td><a href="{{ url_for('admin.user_details', user_id=activity.user_id) }}" class="table-link">User #{{ activity.user_id }}</a></td>
+                            <td><span class="badge-action">{{ activity.action }}</span></td>
+                            <td class="mono">{{ activity.ip_address }}</td>
+                            <td class="mono">{{ activity.endpoint }}</td>
+                            <td><span class="badge-action">{{ activity.method }}</span></td>
+                            <td><span class="status-{{ activity.status_code }}">{{ activity.status_code }}</span></td>
+                            <td class="ts">{{ activity.timestamp.strftime('%Y-%m-%d %H:%M:%S') }}</td>
+                        </tr>
+                        {% else %}
+                        <tr><td colspan="7" class="empty-cell">No activities found</td></tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+
+            <div class="pagination">
+                {% if activities.has_prev %}
+                    <a href="{{ url_for('admin.activity', page=1, action=selected_action) }}">First</a>
+                    <a href="{{ url_for('admin.activity', page=activities.prev_num, action=selected_action) }}">Previous</a>
+                {% endif %}
+                {% for page_num in activities.iter_pages() %}
+                    {% if page_num %}
+                        {% if page_num == activities.page %}<span class="current">{{ page_num }}</span>
+                        {% else %}<a href="{{ url_for('admin.activity', page=page_num, action=selected_action) }}">{{ page_num }}</a>{% endif %}
+                    {% else %}<span>...</span>{% endif %}
+                {% endfor %}
+                {% if activities.has_next %}
+                    <a href="{{ url_for('admin.activity', page=activities.next_num, action=selected_action) }}">Next</a>
+                    <a href="{{ url_for('admin.activity', page=activities.pages, action=selected_action) }}">Last</a>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+</div>
+
+{% include 'admin/_shared_style.html' ignore missing %}
+{% endblock %}

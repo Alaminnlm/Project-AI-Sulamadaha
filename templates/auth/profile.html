@@ -1,0 +1,525 @@
+{% extends 'base.html' %}
+
+{% block title %}My Profile - Sulamadaha AI{% endblock %}
+
+{% block content %}
+<div class="profile-wrapper">
+    <!-- Sidebar -->
+    <aside class="profile-sidebar">
+        <div class="sidebar-profile-card">
+            {% if current_user.profile_picture %}
+                <img src="{{ current_user.profile_picture }}" alt="Profile" class="profile-pic">
+            {% else %}
+                <div class="profile-pic placeholder">{{ current_user.username[0].upper() }}</div>
+            {% endif %}
+            <h2 class="profile-name">{{ current_user.full_name or current_user.username }}</h2>
+            <p class="profile-username">@{{ current_user.username }}</p>
+            <p class="profile-email">{{ current_user.email }}</p>
+        </div>
+
+        <nav class="sidebar-nav">
+            <a href="{{ url_for('index') }}" class="nav-item">
+                <i class="fas fa-comments"></i> Chat
+            </a>
+            <a href="{{ url_for('auth.profile') }}" class="nav-item active">
+                <i class="fas fa-user"></i> Profile
+            </a>
+            <a href="{{ url_for('auth.logout') }}" class="nav-item logout">
+                <i class="fas fa-right-from-bracket"></i> Logout
+            </a>
+        </nav>
+    </aside>
+
+    <!-- Main Content -->
+    <main class="profile-main">
+        <div class="profile-page-header">
+            <h1>My Profile</h1>
+            <p class="header-sub">Kelola informasi akun Anda</p>
+        </div>
+
+        {% with messages = get_flashed_messages(with_categories=true) %}
+            {% if messages %}
+                {% for category, message in messages %}
+                    <div class="alert alert-{{ category }}">
+                        <i class="fas {% if category == 'success' %}fa-circle-check{% else %}fa-circle-exclamation{% endif %}"></i>
+                        {{ message }}
+                    </div>
+                {% endfor %}
+            {% endif %}
+        {% endwith %}
+
+        <!-- Account Information -->
+        <div class="glass-section">
+            <h2 class="section-title"><i class="fas fa-id-card"></i> Account Information</h2>
+            <div class="info-grid">
+                <div class="info-item">
+                    <label>Username</label>
+                    <p>{{ current_user.username }}</p>
+                </div>
+                <div class="info-item">
+                    <label>Email</label>
+                    <p>{{ current_user.email }}</p>
+                </div>
+                <div class="info-item">
+                    <label>Auth Method</label>
+                    <p>
+                        {% if current_user.google_id %}
+                            <span class="badge badge-google"><i class="fab fa-google"></i> Google OAuth</span>
+                        {% else %}
+                            <span class="badge badge-email"><i class="fas fa-envelope"></i> Email & Password</span>
+                        {% endif %}
+                    </p>
+                </div>
+                <div class="info-item">
+                    <label>Member Since</label>
+                    <p>{{ current_user.created_at.strftime('%d %B %Y') }}</p>
+                </div>
+                <div class="info-item">
+                    <label>Last Login</label>
+                    <p>{{ current_user.last_login.strftime('%d %B %Y %H:%M') if current_user.last_login else 'Never' }}</p>
+                </div>
+                <div class="info-item">
+                    <label>Account Status</label>
+                    <p>
+                        {% if current_user.is_active %}
+                            <span class="badge badge-active"><i class="fas fa-circle-check"></i> Active</span>
+                        {% else %}
+                            <span class="badge badge-inactive"><i class="fas fa-circle-xmark"></i> Inactive</span>
+                        {% endif %}
+                    </p>
+                </div>
+            </div>
+        </div>
+
+        <!-- Edit Profile -->
+        <div class="glass-section">
+            <h2 class="section-title"><i class="fas fa-pen-to-square"></i> Edit Profile</h2>
+            <form method="POST" action="{{ url_for('auth.update_profile') }}" class="profile-form">
+                <div class="form-group">
+                    <label for="full_name">Full Name</label>
+                    <input type="text" id="full_name" name="full_name"
+                        value="{{ current_user.full_name or '' }}"
+                        placeholder="Enter your full name">
+                </div>
+
+                {% if not current_user.google_id %}
+                <div class="form-divider">
+                    <span>Change Password</span>
+                </div>
+                <div class="form-group">
+                    <label for="password">New Password <span class="label-hint">(leave empty to keep current)</span></label>
+                    <input type="password" id="password" name="password" placeholder="Enter new password">
+                </div>
+                <div class="form-group">
+                    <label for="confirm_password">Confirm Password</label>
+                    <input type="password" id="confirm_password" name="confirm_password" placeholder="Confirm new password">
+                </div>
+                {% endif %}
+
+                <button type="submit" class="btn-save">
+                    <i class="fas fa-floppy-disk"></i> Save Changes
+                </button>
+            </form>
+        </div>
+    </main>
+</div>
+
+<style>
+    :root {
+        --accent: #38bdf8;
+        --accent-glow: rgba(56, 189, 248, 0.3);
+        --bg-base: #020617;
+        --glass-bg: rgba(15, 23, 42, 0.7);
+        --glass-border: rgba(255, 255, 255, 0.08);
+        --text-main: #f8fafc;
+        --text-muted: #94a3b8;
+    }
+
+    * {
+        margin: 0;
+        padding: 0;
+        box-sizing: border-box;
+        font-family: 'Plus Jakarta Sans', -apple-system, sans-serif;
+    }
+
+    body {
+        background-color: var(--bg-base);
+        background-image:
+            linear-gradient(rgba(2, 6, 23, 0.6), rgba(2, 6, 23, 0.85)),
+            url("{{ url_for('static', filename='background/Pantai-Sulamadaha.jpg') }}");
+        background-size: cover;
+        background-position: center;
+        background-attachment: fixed;
+        color: var(--text-main);
+        min-height: 100vh;
+    }
+
+    /* ===== LAYOUT ===== */
+    .profile-wrapper {
+        display: flex;
+        min-height: 100vh;
+        max-width: 1100px;
+        margin: 0 auto;
+        padding: 32px 20px;
+        gap: 24px;
+        align-items: flex-start;
+    }
+
+    /* ===== SIDEBAR ===== */
+    .profile-sidebar {
+        width: 260px;
+        flex-shrink: 0;
+        display: flex;
+        flex-direction: column;
+        gap: 16px;
+        position: sticky;
+        top: 32px;
+    }
+
+    .sidebar-profile-card {
+        background: var(--glass-bg);
+        backdrop-filter: blur(20px);
+        -webkit-backdrop-filter: blur(20px);
+        border: 1px solid var(--glass-border);
+        border-radius: 20px;
+        padding: 28px 20px;
+        text-align: center;
+        box-shadow: 0 4px 24px rgba(0,0,0,0.3);
+    }
+
+    .profile-pic {
+        width: 90px;
+        height: 90px;
+        border-radius: 50%;
+        object-fit: cover;
+        border: 2px solid var(--accent);
+        box-shadow: 0 0 20px var(--accent-glow);
+        margin-bottom: 14px;
+    }
+
+    .profile-pic.placeholder {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        background: linear-gradient(135deg, var(--accent), #0ea5e9);
+        color: var(--bg-base);
+        font-size: 2.2rem;
+        font-weight: 800;
+        margin: 0 auto 14px;
+    }
+
+    .profile-name {
+        font-size: 1.1rem;
+        font-weight: 700;
+        margin-bottom: 6px;
+    }
+
+    .profile-username {
+        color: var(--accent);
+        font-size: 0.9rem;
+        font-weight: 600;
+        margin-bottom: 4px;
+    }
+
+    .profile-email {
+        color: var(--text-muted);
+        font-size: 0.8rem;
+    }
+
+    .sidebar-nav {
+        display: flex;
+        flex-direction: column;
+        gap: 6px;
+    }
+
+    .nav-item {
+        display: flex;
+        align-items: center;
+        gap: 10px;
+        padding: 12px 16px;
+        border-radius: 12px;
+        text-decoration: none;
+        color: var(--text-muted);
+        font-size: 0.9rem;
+        font-weight: 500;
+        background: var(--glass-bg);
+        border: 1px solid var(--glass-border);
+        backdrop-filter: blur(12px);
+        transition: all 0.2s;
+    }
+
+    .nav-item:hover {
+        background: rgba(56, 189, 248, 0.1);
+        color: var(--accent);
+        border-color: rgba(56, 189, 248, 0.25);
+    }
+
+    .nav-item.active {
+        background: rgba(56, 189, 248, 0.15);
+        color: var(--accent);
+        border-color: rgba(56, 189, 248, 0.35);
+        font-weight: 700;
+    }
+
+    .nav-item.logout {
+        color: #f87171;
+        border-color: rgba(248, 113, 113, 0.15);
+    }
+
+    .nav-item.logout:hover {
+        background: rgba(248, 113, 113, 0.1);
+        border-color: rgba(248, 113, 113, 0.3);
+    }
+
+    /* ===== MAIN ===== */
+    .profile-main {
+        flex: 1;
+        min-width: 0;
+        display: flex;
+        flex-direction: column;
+        gap: 20px;
+    }
+
+    .profile-page-header {
+        margin-bottom: 4px;
+    }
+
+    .profile-page-header h1 {
+        font-size: 2rem;
+        font-weight: 800;
+        background: linear-gradient(135deg, #fff 0%, var(--accent) 100%);
+        -webkit-background-clip: text;
+        background-clip: text;
+        -webkit-text-fill-color: transparent;
+    }
+
+    .header-sub {
+        color: var(--text-muted);
+        font-size: 0.9rem;
+        margin-top: 4px;
+    }
+
+    /* ===== ALERTS ===== */
+    .alert {
+        display: flex;
+        align-items: center;
+        gap: 10px;
+        padding: 14px 20px;
+        border-radius: 12px;
+        font-size: 0.9rem;
+        font-weight: 500;
+    }
+
+    .alert-success {
+        background: rgba(16, 185, 129, 0.1);
+        border: 1px solid rgba(16, 185, 129, 0.3);
+        color: #10b981;
+    }
+
+    .alert-error {
+        background: rgba(248, 113, 113, 0.1);
+        border: 1px solid rgba(248, 113, 113, 0.3);
+        color: #f87171;
+    }
+
+    /* ===== GLASS SECTIONS ===== */
+    .glass-section {
+        background: var(--glass-bg);
+        backdrop-filter: blur(20px);
+        -webkit-backdrop-filter: blur(20px);
+        border: 1px solid var(--glass-border);
+        border-radius: 20px;
+        padding: 28px;
+        box-shadow: 0 4px 24px rgba(0,0,0,0.3);
+    }
+
+    .section-title {
+        font-size: 1rem;
+        font-weight: 700;
+        margin-bottom: 20px;
+        color: var(--text-main);
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        padding-bottom: 14px;
+        border-bottom: 1px solid var(--glass-border);
+    }
+
+    .section-title i {
+        color: var(--accent);
+    }
+
+    /* ===== INFO GRID ===== */
+    .info-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+        gap: 20px;
+    }
+
+    .info-item label {
+        display: block;
+        font-size: 0.72rem;
+        font-weight: 700;
+        color: var(--text-muted);
+        text-transform: uppercase;
+        letter-spacing: 0.05em;
+        margin-bottom: 6px;
+    }
+
+    .info-item p {
+        color: var(--text-main);
+        font-size: 0.95rem;
+        font-weight: 500;
+    }
+
+    /* ===== BADGES ===== */
+    .badge {
+        display: inline-flex;
+        align-items: center;
+        gap: 5px;
+        padding: 4px 12px;
+        border-radius: 50px;
+        font-size: 0.78rem;
+        font-weight: 600;
+    }
+
+    .badge-google {
+        background: rgba(56, 189, 248, 0.1);
+        color: var(--accent);
+        border: 1px solid rgba(56, 189, 248, 0.25);
+    }
+
+    .badge-email {
+        background: rgba(167, 139, 250, 0.15);
+        color: #a78bfa;
+        border: 1px solid rgba(167, 139, 250, 0.3);
+    }
+
+    .badge-active {
+        background: rgba(16, 185, 129, 0.15);
+        color: #10b981;
+        border: 1px solid rgba(16, 185, 129, 0.3);
+    }
+
+    .badge-inactive {
+        background: rgba(248, 113, 113, 0.15);
+        color: #f87171;
+        border: 1px solid rgba(248, 113, 113, 0.3);
+    }
+
+    /* ===== FORM ===== */
+    .profile-form {
+        display: flex;
+        flex-direction: column;
+        gap: 18px;
+    }
+
+    .form-group {
+        display: flex;
+        flex-direction: column;
+        gap: 8px;
+    }
+
+    .form-group label {
+        font-size: 0.85rem;
+        font-weight: 600;
+        color: var(--text-muted);
+    }
+
+    .label-hint {
+        font-weight: 400;
+        font-style: italic;
+        font-size: 0.78rem;
+    }
+
+    .form-group input {
+        background: rgba(255, 255, 255, 0.04);
+        border: 1px solid var(--glass-border);
+        border-radius: 10px;
+        padding: 11px 16px;
+        color: var(--text-main);
+        font-size: 0.95rem;
+        font-family: inherit;
+        transition: all 0.2s;
+    }
+
+    .form-group input::placeholder {
+        color: var(--text-muted);
+    }
+
+    .form-group input:focus {
+        outline: none;
+        border-color: rgba(56, 189, 248, 0.5);
+        background: rgba(56, 189, 248, 0.05);
+        box-shadow: 0 0 0 3px rgba(56, 189, 248, 0.1);
+    }
+
+    .form-divider {
+        display: flex;
+        align-items: center;
+        gap: 12px;
+        color: var(--text-muted);
+        font-size: 0.85rem;
+        font-weight: 600;
+    }
+
+    .form-divider::before,
+    .form-divider::after {
+        content: '';
+        flex: 1;
+        height: 1px;
+        background: var(--glass-border);
+    }
+
+    .btn-save {
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        gap: 8px;
+        background: linear-gradient(135deg, var(--accent), #0ea5e9);
+        color: var(--bg-base);
+        border: none;
+        padding: 12px 28px;
+        border-radius: 10px;
+        font-size: 0.95rem;
+        font-weight: 700;
+        cursor: pointer;
+        transition: all 0.2s;
+        align-self: flex-start;
+        box-shadow: 0 0 20px var(--accent-glow);
+    }
+
+    .btn-save:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 0 30px var(--accent-glow);
+    }
+
+    /* ===== RESPONSIVE ===== */
+    @media (max-width: 768px) {
+        .profile-wrapper {
+            flex-direction: column;
+            padding: 20px 16px;
+        }
+
+        .profile-sidebar {
+            width: 100%;
+            position: static;
+        }
+
+        .sidebar-nav {
+            flex-direction: row;
+            flex-wrap: wrap;
+        }
+
+        .info-grid {
+            grid-template-columns: 1fr 1fr;
+        }
+    }
+
+    @media (max-width: 480px) {
+        .info-grid {
+            grid-template-columns: 1fr;
+        }
+    }
+</style>
+{% endblock %}

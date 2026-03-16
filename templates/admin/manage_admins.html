@@ -1,0 +1,133 @@
+{% extends 'base.html' %}
+
+{% block title %}Manage Administrators - Admin Panel{% endblock %}
+
+{% block content %}
+<div class="admin-wrapper">
+    <nav class="admin-sidebar">
+        <div class="sidebar-brand"><i class="fas fa-shield-halved"></i><span>Admin Panel</span></div>
+        <ul class="sidebar-menu">
+            <li><a href="{{ url_for('admin.dashboard') }}"><i class="fas fa-gauge"></i> Dashboard</a></li>
+            <li><a href="{{ url_for('admin.users') }}"><i class="fas fa-users"></i> Users</a></li>
+            <li><a href="{{ url_for('admin.manage_admins') }}" class="active"><i class="fas fa-user-shield"></i> Administrators</a></li>
+            <li><a href="{{ url_for('admin.activity') }}"><i class="fas fa-wave-square"></i> Activity</a></li>
+            <li><a href="{{ url_for('admin.reports') }}"><i class="fas fa-chart-bar"></i> Reports</a></li>
+            <li><a href="{{ url_for('admin.settings') }}"><i class="fas fa-gear"></i> Settings</a></li>
+            <li class="sidebar-spacer"></li>
+            <li><a href="{{ url_for('admin.logout') }}" class="logout-link"><i class="fas fa-right-from-bracket"></i> Logout</a></li>
+        </ul>
+    </nav>
+
+    <div class="admin-main">
+        <div class="page-header">
+            <div>
+                <h1 class="page-title">Administrators</h1>
+                <p class="page-sub">Kelola akun administrator sistem</p>
+            </div>
+            <a href="{{ url_for('admin.create_admin') }}" class="btn-accent">
+                <i class="fas fa-user-plus"></i> Tambah Admin
+            </a>
+        </div>
+
+        {% with messages = get_flashed_messages(with_categories=true) %}
+            {% if messages %}
+                {% for category, message in messages %}
+                    <div class="alert alert-{{ category }}">
+                        <i class="fas {% if category == 'success' %}fa-circle-check{% else %}fa-circle-exclamation{% endif %}"></i>
+                        {{ message }}
+                    </div>
+                {% endfor %}
+            {% endif %}
+        {% endwith %}
+
+        <div class="glass-card">
+            <h2 class="section-title"><i class="fas fa-user-shield"></i> Daftar Administrator</h2>
+            <div class="table-wrapper">
+                <table class="dark-table">
+                    <thead>
+                        <tr>
+                            <th>Username</th>
+                            <th>Email</th>
+                            <th>Nama Lengkap</th>
+                            <th>Role</th>
+                            <th>Status</th>
+                            <th>Dibuat</th>
+                            <th>Login Terakhir</th>
+                            <th>Aksi</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for admin in admins %}
+                        <tr>
+                            <td>
+                                <div class="admin-name-cell">
+                                    <div class="admin-avatar">{{ admin.username[0].upper() }}</div>
+                                    <span>{{ admin.username }}</span>
+                                    {% if admin.id == current_user.id %}
+                                        <span class="you-badge">Anda</span>
+                                    {% endif %}
+                                </div>
+                            </td>
+                            <td class="mono">{{ admin.email }}</td>
+                            <td>{{ admin.full_name or '-' }}</td>
+                            <td>
+                                {% if admin.role == 'super_admin' %}
+                                    <span class="role-super">Super Admin</span>
+                                {% else %}
+                                    <span class="role-admin">Admin</span>
+                                {% endif %}
+                            </td>
+                            <td>
+                                {% if admin.is_active %}
+                                    <span class="badge-active">Active</span>
+                                {% else %}
+                                    <span class="badge-inactive">Inactive</span>
+                                {% endif %}
+                            </td>
+                            <td class="ts">{{ admin.created_at.strftime('%Y-%m-%d') if admin.created_at else '-' }}</td>
+                            <td class="ts">{{ admin.last_login.strftime('%Y-%m-%d %H:%M') if admin.last_login else 'Never' }}</td>
+                            <td>
+                                {% if admin.id != current_user.id %}
+                                    <form method="POST" action="{{ url_for('admin.toggle_admin_status', admin_id=admin.id) }}" style="display:inline;">
+                                        <button type="submit" class="{% if admin.is_active %}btn-deactivate-sm{% else %}btn-activate-sm{% endif %}">
+                                            {% if admin.is_active %}<i class="fas fa-user-slash"></i> Nonaktifkan{% else %}<i class="fas fa-user-check"></i> Aktifkan{% endif %}
+                                        </button>
+                                    </form>
+                                {% else %}
+                                    <a href="{{ url_for('admin.settings') }}" class="btn-settings-sm">
+                                        <i class="fas fa-gear"></i> Settings
+                                    </a>
+                                {% endif %}
+                            </td>
+                        </tr>
+                        {% else %}
+                        <tr><td colspan="8" class="empty-cell">Tidak ada administrator</td></tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+</div>
+
+{% include 'admin/_shared_style.html' ignore missing %}
+<style>
+.admin-name-cell { display: flex; align-items: center; gap: 10px; }
+.admin-avatar {
+    width: 32px; height: 32px; border-radius: 50%;
+    background: linear-gradient(135deg, var(--accent), #0ea5e9);
+    display: flex; align-items: center; justify-content: center;
+    font-size: 0.85rem; font-weight: 800; color: var(--bg-base);
+    flex-shrink: 0;
+}
+.you-badge { background: rgba(56,189,248,0.1); color: var(--accent); border: 1px solid rgba(56,189,248,0.25); padding: 1px 8px; border-radius: 50px; font-size: 0.7rem; font-weight: 700; }
+.role-super { background: rgba(250,204,21,0.15); color: #facc15; border: 1px solid rgba(250,204,21,0.3); padding: 3px 10px; border-radius: 50px; font-size: 0.78rem; font-weight: 700; }
+.role-admin { background: rgba(56,189,248,0.1); color: var(--accent); border: 1px solid rgba(56,189,248,0.2); padding: 3px 10px; border-radius: 50px; font-size: 0.78rem; font-weight: 700; }
+.btn-deactivate-sm { background: rgba(248,113,113,0.12); color: #f87171; border: 1px solid rgba(248,113,113,0.3); padding: 5px 12px; border-radius: 7px; cursor: pointer; font-size: 0.8rem; font-weight: 600; display: inline-flex; align-items: center; gap: 5px; transition: all 0.2s; font-family: inherit; }
+.btn-deactivate-sm:hover { background: rgba(248,113,113,0.25); }
+.btn-activate-sm { background: rgba(16,185,129,0.12); color: #10b981; border: 1px solid rgba(16,185,129,0.3); padding: 5px 12px; border-radius: 7px; cursor: pointer; font-size: 0.8rem; font-weight: 600; display: inline-flex; align-items: center; gap: 5px; transition: all 0.2s; font-family: inherit; }
+.btn-activate-sm:hover { background: rgba(16,185,129,0.25); }
+.btn-settings-sm { background: rgba(56,189,248,0.1); color: var(--accent); border: 1px solid rgba(56,189,248,0.2); padding: 5px 12px; border-radius: 7px; text-decoration: none; font-size: 0.8rem; font-weight: 600; display: inline-flex; align-items: center; gap: 5px; transition: all 0.2s; }
+.btn-settings-sm:hover { background: rgba(56,189,248,0.2); }
+</style>
+{% endblock %}

@@ -1,0 +1,122 @@
+{% extends 'base.html' %}
+
+{% block title %}Settings - Admin Panel{% endblock %}
+
+{% block content %}
+<div class="admin-wrapper">
+    <nav class="admin-sidebar">
+        <div class="sidebar-brand"><i class="fas fa-shield-halved"></i><span>Admin Panel</span></div>
+        <ul class="sidebar-menu">
+            <li><a href="{{ url_for('admin.dashboard') }}"><i class="fas fa-gauge"></i> Dashboard</a></li>
+            <li><a href="{{ url_for('admin.users') }}"><i class="fas fa-users"></i> Users</a></li>
+            <li><a href="{{ url_for('admin.manage_admins') }}"><i class="fas fa-user-shield"></i> Administrators</a></li>
+            <li><a href="{{ url_for('admin.activity') }}"><i class="fas fa-wave-square"></i> Activity</a></li>
+            <li><a href="{{ url_for('admin.reports') }}"><i class="fas fa-chart-bar"></i> Reports</a></li>
+            <li><a href="{{ url_for('admin.settings') }}" class="active"><i class="fas fa-gear"></i> Settings</a></li>
+            <li class="sidebar-spacer"></li>
+            <li><a href="{{ url_for('admin.logout') }}" class="logout-link"><i class="fas fa-right-from-bracket"></i> Logout</a></li>
+        </ul>
+    </nav>
+
+    <div class="admin-main">
+        <div class="page-header">
+            <div>
+                <h1 class="page-title">Settings</h1>
+                <p class="page-sub">Manage your admin account settings</p>
+            </div>
+        </div>
+
+        {% with messages = get_flashed_messages(with_categories=true) %}
+            {% if messages %}
+                {% for category, message in messages %}
+                    <div class="alert alert-{{ category }}">
+                        <i class="fas {% if category == 'success' %}fa-circle-check{% else %}fa-circle-exclamation{% endif %}"></i>
+                        {{ message }}
+                    </div>
+                {% endfor %}
+            {% endif %}
+        {% endwith %}
+
+        <div class="settings-columns">
+            <!-- Account Info -->
+            <div class="glass-card">
+                <h2 class="section-title"><i class="fas fa-id-card"></i> Account Information</h2>
+                <div class="info-list">
+                    <div class="info-row">
+                        <span class="info-label">Username</span>
+                        <span class="info-value">{{ admin.username }}</span>
+                    </div>
+                    <div class="info-row">
+                        <span class="info-label">Email</span>
+                        <span class="info-value mono">{{ admin.email }}</span>
+                    </div>
+                    <div class="info-row">
+                        <span class="info-label">Role</span>
+                        <span>
+                            {% if admin.role == 'super_admin' %}
+                                <span class="role-badge super">Super Admin</span>
+                            {% else %}
+                                <span class="role-badge">Admin</span>
+                            {% endif %}
+                        </span>
+                    </div>
+                    <div class="info-row">
+                        <span class="info-label">Last Login</span>
+                        <span class="info-value ts">{{ admin.last_login.strftime('%d %B %Y %H:%M') if admin.last_login else 'Never' }}</span>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Edit Profile -->
+            <div class="glass-card">
+                <h2 class="section-title"><i class="fas fa-pen-to-square"></i> Edit Profile</h2>
+                <form method="POST" action="{{ url_for('admin.update_settings') }}" class="form-section">
+                    <div class="form-group">
+                        <label>Full Name</label>
+                        <input type="text" name="full_name" value="{{ admin.full_name or '' }}" placeholder="Enter your full name">
+                    </div>
+                    <div class="form-group">
+                        <label>New Password <small style="color:var(--text-muted);font-weight:400;">(leave empty to keep current)</small></label>
+                        <input type="password" name="password" placeholder="Min 6 characters">
+                    </div>
+                    <div class="form-group">
+                        <label>Confirm Password</label>
+                        <input type="password" name="confirm_password" placeholder="Confirm new password">
+                    </div>
+                    <button type="submit" class="btn-save"><i class="fas fa-floppy-disk"></i> Save Changes</button>
+                </form>
+            </div>
+
+            <!-- Danger Zone -->
+            <div class="glass-card danger-card">
+                <h2 class="section-title" style="color:#f87171;"><i class="fas fa-triangle-exclamation"></i> Danger Zone</h2>
+                <div class="danger-item">
+                    <div>
+                        <p class="danger-title">Logout from all sessions</p>
+                        <p class="danger-desc">You will be signed out from all devices.</p>
+                    </div>
+                    <a href="{{ url_for('admin.logout') }}" class="btn-danger-action">Logout</a>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+{% include 'admin/_shared_style.html' ignore missing %}
+<style>
+.settings-columns { display: flex; flex-direction: column; gap: 20px; max-width: 640px; }
+.info-list { display: flex; flex-direction: column; gap: 0; }
+.info-row { display: flex; justify-content: space-between; align-items: center; padding: 12px 0; border-bottom: 1px solid var(--glass-border); }
+.info-row:last-child { border-bottom: none; }
+.info-label { font-size: 0.78rem; font-weight: 700; color: var(--text-muted); text-transform: uppercase; letter-spacing: 0.04em; }
+.info-value { color: var(--text-main); font-size: 0.92rem; font-weight: 500; }
+.role-badge { background: rgba(56,189,248,0.1); color: var(--accent); border: 1px solid rgba(56,189,248,0.25); padding: 3px 12px; border-radius: 50px; font-size: 0.78rem; font-weight: 700; }
+.role-badge.super { background: rgba(250,204,21,0.1); color: #facc15; border-color: rgba(250,204,21,0.25); }
+.danger-card { border-color: rgba(248,113,113,0.2); }
+.danger-item { display: flex; justify-content: space-between; align-items: center; gap: 16px; }
+.danger-title { font-weight: 700; color: var(--text-main); margin-bottom: 4px; }
+.danger-desc { font-size: 0.85rem; color: var(--text-muted); }
+.btn-danger-action { background: rgba(248,113,113,0.15); color: #f87171; border: 1px solid rgba(248,113,113,0.3); padding: 8px 16px; border-radius: 8px; text-decoration: none; font-weight: 600; font-size: 0.88rem; white-space: nowrap; transition: all 0.2s; }
+.btn-danger-action:hover { background: rgba(248,113,113,0.25); }
+</style>
+{% endblock %}
