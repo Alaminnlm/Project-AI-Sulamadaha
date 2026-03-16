@@ -130,22 +130,7 @@
         </main>
     </div>
 
-    <script>
-        document.addEventListener('DOMContentLoaded', function() {
-            const btn = document.getElementById('userProfileBtn');
-            const menu = document.getElementById('userMenu');
-            
-            if (btn && menu) {
-                btn.addEventListener('click', function(e) {
-                    e.stopPropagation();
-                    menu.classList.toggle('active');
-                });
-                document.addEventListener('click', function() {
-                    menu.classList.remove('active');
-                });
-            }
-        });
-    </script>
+    
     <script src="{{ url_for('static', filename='js/script.js') }}"></script>
 </body>
 </html>

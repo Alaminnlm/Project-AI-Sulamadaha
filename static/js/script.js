@@ -724,3 +724,20 @@ messageInput.addEventListener('input', () => {
     messageInput.style.height = 'auto';
     messageInput.style.height = Math.min(messageInput.scrollHeight, 100) + 'px';
 });
+
+
+// UI Scripts from index.html
+document.addEventListener('DOMContentLoaded', function() {
+            const btn = document.getElementById('userProfileBtn');
+            const menu = document.getElementById('userMenu');
+            
+            if (btn && menu) {
+                btn.addEventListener('click', function(e) {
+                    e.stopPropagation();
+                    menu.classList.toggle('active');
+                });
+                document.addEventListener('click', function() {
+                    menu.classList.remove('active');
+                });
+            }
+        });
